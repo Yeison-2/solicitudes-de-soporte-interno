@@ -44,11 +44,7 @@
                 <td th:text="${solicitud.titulo}">Titulo</td>
                 <td th:text="${solicitud.categoria}">Categoria</td>
                 <td th:text="${solicitud.solicitante.nombreCompleto}">Solicitante</td>
-                <td>
-                    <span class="etiqueta"
-                          th:classappend="' etiqueta-' + ${#strings.toLowerCase(solicitud.prioridad.name())}"
-                          th:text="${solicitud.prioridad}">Prioridad</span>
-                </td>
+                <td th:text="${solicitud.prioridad}">Prioridad</td>
                 <td th:text="${solicitud.estado}">Estado</td>
                 <td th:text="${solicitud.fechaCreacionTexto}">Fecha</td>
                 <td>

@@ -20,11 +20,7 @@
         <dd th:text="${solicitud.categoria}">Categoria</dd>
 
         <dt>Prioridad</dt>
-        <dd>
-            <span class="etiqueta"
-                  th:classappend="' etiqueta-' + ${#strings.toLowerCase(solicitud.prioridad.name())}"
-                  th:text="${solicitud.prioridad}">Prioridad</span>
-        </dd>
+        <dd th:text="${solicitud.prioridad}">Prioridad</dd>
 
         <dt>Estado</dt>
         <dd th:text="${solicitud.estado}">Estado</dd>
