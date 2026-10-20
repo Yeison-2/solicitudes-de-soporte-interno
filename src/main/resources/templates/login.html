@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body class="cuerpo-acceso">
+
+<main class="acceso">
+    <header class="acceso-cabecera">
+        <h1>Solicitudes de soporte interno</h1>
+        <p class="acceso-guia">Ingrese con las credenciales entregadas por el area de soporte.</p>
+    </header>
+
+    <div class="avisos">
+        <p class="aviso aviso-error" th:if="${param.error}">Usuario o contrasena incorrectos.</p>
+        <p class="aviso aviso-ok" th:if="${param.logout}">Su sesion se cerro correctamente.</p>
+    </div>
+
+    <form class="formulario" th:action="@{/login}" method="post">
+        <div class="campo">
+            <label for="usuario">Usuario</label>
+            <input id="usuario" type="text" name="username" autocomplete="username" required autofocus>
+        </div>
+        <div class="campo">
+            <label for="clave">Contrasena</label>
+            <input id="clave" type="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="boton boton-principal">Ingresar</button>
+    </form>
+</main>
+
+</body>
+</html>

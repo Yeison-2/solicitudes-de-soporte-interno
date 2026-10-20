@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Inicio</h1>
+    <p class="entrada" th:text="'Sesion iniciada como ' + ${usuarioActual.nombreCompleto} + ' (' + ${usuarioActual.rol} + ').'">
+        Sesion iniciada.
+    </p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <section class="bloque" th:if="${usuarioActual.rol.name() == 'SOLICITANTE'}">
+        <h2>Sus tareas</h2>
+        <ul class="lista-accesos">
+            <li><a th:href="@{/solicitudes}">Ver mis solicitudes</a></li>
+            <li><a th:href="@{/solicitudes/nueva}">Registrar una nueva solicitud</a></li>
+        </ul>
+    </section>
+
+    <section class="bloque" th:if="${usuarioActual.rol.name() == 'COORDINADOR'}">
+        <h2>Sus tareas</h2>
+        <ul class="lista-accesos">
+            <li><a th:href="@{/coordinacion/solicitudes}">Abrir la bandeja de coordinacion</a></li>
+        </ul>
+    </section>
+
+    <section class="bloque"
+             th:if="${usuarioActual.rol.name() == 'AGENTE' or usuarioActual.rol.name() == 'AUDITOR'}">
+        <h2>Sin funciones habilitadas</h2>
+        <p class="entrada">Este rol todavia no tiene acciones disponibles.</p>
+    </section>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

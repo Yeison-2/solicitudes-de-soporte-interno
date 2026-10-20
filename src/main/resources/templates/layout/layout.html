@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} != null ? ${titulo} + ' · Solicitudes de soporte' : 'Solicitudes de soporte'">Solicitudes de soporte</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+<header class="barra" th:fragment="nav">
+    <div class="barra-interior">
+        <a class="marca" th:href="@{/inicio}">Solicitudes de soporte interno</a>
+        <nav class="enlaces" aria-label="Navegacion principal">
+            <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'SOLICITANTE'}"
+               th:href="@{/solicitudes}">Mis solicitudes</a>
+            <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'SOLICITANTE'}"
+               th:href="@{/solicitudes/nueva}">Nueva solicitud</a>
+            <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'COORDINADOR'}"
+               th:href="@{/coordinacion/solicitudes}">Bandeja de coordinacion</a>
+        </nav>
+        <div class="sesion" th:if="${usuarioActual != null}">
+            <span class="sesion-nombre" th:text="${usuarioActual.nombreCompleto}">Nombre</span>
+            <span class="sesion-rol" th:text="${usuarioActual.rol}">ROL</span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="boton boton-suave">Cerrar sesion</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="contenido">
+
+    <div th:fragment="avisos" class="avisos">
+        <p class="aviso aviso-ok" th:if="${ok}" th:text="${ok}">Mensaje</p>
+        <p class="aviso aviso-error" th:if="${error}" th:text="${error}">Error</p>
+    </div>
+
+</main>
+
+<footer class="pie" th:fragment="pie">
+    <p>Solicitudes de soporte interno · taller de desarrollo web</p>
+</footer>
+
+</body>
+</html>
