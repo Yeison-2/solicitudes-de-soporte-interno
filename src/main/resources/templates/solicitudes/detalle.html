@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Detalle de la solicitud <span th:text="${solicitud.idSolicitud}">1</span></h1>
+
+    <dl class="ficha">
+        <dt>Titulo</dt>
+        <dd th:text="${solicitud.titulo}">Titulo</dd>
+
+        <dt>Descripcion</dt>
+        <dd class="ficha-texto" th:text="${solicitud.descripcion}">Descripcion</dd>
+
+        <dt>Categoria</dt>
+        <dd th:text="${solicitud.categoria}">Categoria</dd>
+
+        <dt>Prioridad</dt>
+        <dd>
+            <span class="etiqueta"
+                  th:classappend="' etiqueta-' + ${#strings.toLowerCase(solicitud.prioridad.name())}"
+                  th:text="${solicitud.prioridad}">Prioridad</span>
+        </dd>
+
+        <dt>Estado</dt>
+        <dd th:text="${solicitud.estado}">Estado</dd>
+
+        <dt>Solicitante</dt>
+        <dd th:text="${solicitud.solicitante.nombreCompleto}">Nombre</dd>
+
+        <dt>Fecha de creacion</dt>
+        <dd th:text="${solicitud.fechaCreacionTexto}">Fecha</dd>
+
+        <dt>Ultima actualizacion</dt>
+        <dd th:text="${solicitud.fechaActualizacionTexto}">Fecha</dd>
+    </dl>
+
+    <p><a th:href="@{/solicitudes}">Volver a mis solicitudes</a></p>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

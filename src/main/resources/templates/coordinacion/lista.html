@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Bandeja de coordinacion</h1>
+    <p class="entrada">Todas las solicitudes registradas. Ajuste la prioridad para ordenar la atencion.</p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <nav class="orden" aria-label="Orden de la lista">
+        <span>Ordenar por:</span>
+        <a th:href="@{/coordinacion/solicitudes(orden='prioridad')}"
+           th:classappend="${orden == 'prioridad'} ? 'orden-activo'">prioridad</a>
+        <a th:href="@{/coordinacion/solicitudes(orden='estado')}"
+           th:classappend="${orden == 'estado'} ? 'orden-activo'">estado</a>
+        <a th:href="@{/coordinacion/solicitudes(orden='fecha')}"
+           th:classappend="${orden == 'fecha'} ? 'orden-activo'">fecha</a>
+    </nav>
+
+    <p class="vacio" th:if="${#lists.isEmpty(solicitudes)}">Todavia no hay solicitudes registradas.</p>
+
+    <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(solicitudes)}">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Numero</th>
+                <th>Titulo</th>
+                <th>Categoria</th>
+                <th>Solicitante</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Creacion</th>
+                <th>Cambiar prioridad</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="solicitud : ${solicitudes}">
+                <td class="celda-numero" th:text="${solicitud.idSolicitud}">1</td>
+                <td th:text="${solicitud.titulo}">Titulo</td>
+                <td th:text="${solicitud.categoria}">Categoria</td>
+                <td th:text="${solicitud.solicitante.nombreCompleto}">Solicitante</td>
+                <td>
+                    <span class="etiqueta"
+                          th:classappend="' etiqueta-' + ${#strings.toLowerCase(solicitud.prioridad.name())}"
+                          th:text="${solicitud.prioridad}">Prioridad</span>
+                </td>
+                <td th:text="${solicitud.estado}">Estado</td>
+                <td th:text="${solicitud.fechaCreacionTexto}">Fecha</td>
+                <td>
+                    <form class="formulario-prioridad"
+                          th:action="@{/coordinacion/solicitudes/{id}/prioridad(id=${solicitud.idSolicitud})}"
+                          method="post">
+                        <label class="oculto-visual" th:for="'prioridad-' + ${solicitud.idSolicitud}"
+                               th:text="'Prioridad para la solicitud ' + ${solicitud.idSolicitud}">Prioridad</label>
+                        <select th:id="'prioridad-' + ${solicitud.idSolicitud}" name="prioridad">
+                            <option th:each="prioridad : ${prioridades}"
+                                    th:value="${prioridad}"
+                                    th:text="${prioridad}"
+                                    th:selected="${prioridad == solicitud.prioridad}">Opcion</option>
+                        </select>
+                        <button type="submit" class="boton boton-suave">Aplicar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Nueva solicitud</h1>
+    <p class="entrada">Describa lo que necesita. El numero, la fecha, el estado y la prioridad los
+        asigna el sistema.</p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <form class="formulario" th:action="@{/solicitudes/nueva}" th:object="${solicitud}" method="post">
+        <div class="campo">
+            <label for="titulo">Titulo</label>
+            <input id="titulo" type="text" th:field="*{titulo}" maxlength="100">
+            <p class="error-campo" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}">Error</p>
+        </div>
+
+        <div class="campo">
+            <label for="descripcion">Descripcion</label>
+            <textarea id="descripcion" th:field="*{descripcion}" rows="6" maxlength="1000"></textarea>
+            <p class="error-campo" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}">Error</p>
+        </div>
+
+        <div class="campo">
+            <label for="categoria">Categoria</label>
+            <select id="categoria" th:field="*{categoria}">
+                <option value="">Seleccione una categoria</option>
+                <option th:each="categoria : ${categorias}" th:value="${categoria}" th:text="${categoria}">Opcion</option>
+            </select>
+            <p class="error-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">Error</p>
+        </div>
+
+        <div class="acciones">
+            <button type="submit" class="boton boton-principal">Registrar solicitud</button>
+            <a class="boton boton-suave" th:href="@{/solicitudes}">Cancelar</a>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>
