@@ -9,6 +9,8 @@
 <main class="contenido">
     <h1>Detalle de la solicitud <span th:text="${solicitud.idSolicitud}">1</span></h1>
 
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
     <dl class="ficha">
         <dt>Titulo</dt>
         <dd th:text="${solicitud.titulo}">Titulo</dd>
@@ -33,9 +35,126 @@
 
         <dt>Ultima actualizacion</dt>
         <dd th:text="${solicitud.fechaActualizacionTexto}">Fecha</dd>
+
+        <dt>Agente asignado</dt>
+        <dd th:if="${solicitud.agenteAsignado != null}" th:text="${solicitud.agenteAsignado.nombreCompleto}">Nombre</dd>
+        <dd th:if="${solicitud.agenteAsignado == null}">Sin asignar</dd>
+
+        <dt th:if="${solicitud.fechaAsignacion != null}">Fecha de asignacion</dt>
+        <dd th:if="${solicitud.fechaAsignacion != null}" th:text="${solicitud.fechaAsignacionTexto}">Fecha</dd>
+
+        <dt th:if="${solicitud.prioridad.name() == 'ALTA' and solicitud.justificacionPrioridad != null}">Justificacion de la prioridad alta</dt>
+        <dd th:if="${solicitud.prioridad.name() == 'ALTA' and solicitud.justificacionPrioridad != null}"
+            class="ficha-texto" th:text="${solicitud.justificacionPrioridad}">Justificacion</dd>
+
+        <dt th:if="${solicitud.prioridad.name() == 'ALTA' and solicitud.fechaObjetivo != null}">Fecha objetivo</dt>
+        <dd th:if="${solicitud.prioridad.name() == 'ALTA' and solicitud.fechaObjetivo != null}"
+            th:text="${solicitud.fechaObjetivoTexto}">Fecha</dd>
+
+        <dt th:if="${solicitud.motivoReapertura != null}">Motivo de reapertura</dt>
+        <dd th:if="${solicitud.motivoReapertura != null}"
+            class="ficha-texto" th:text="${solicitud.motivoReapertura}">Motivo</dd>
     </dl>
 
-    <p><a th:href="@{/solicitudes}">Volver a mis solicitudes</a></p>
+    <section class="bloque">
+        <h2>Acciones</h2>
+        <p class="entrada" th:if="${usuarioActual.rol.name() == 'COORDINADOR'}">
+            Las acciones de asignacion y prioridad se gestionan en la bandeja de coordinacion.
+        </p>
+        <p class="entrada" th:if="${usuarioActual.rol.name() != 'COORDINADOR' and #lists.isEmpty(acciones) and !puedeCerrar}">
+            No tiene acciones disponibles sobre esta solicitud en su estado actual.
+        </p>
+        <div class="acciones">
+            <form th:if="${acciones.contains('iniciar')}" th:action="@{/solicitudes/{id}/estado(id=${solicitud.idSolicitud})}"
+                  method="post">
+                <input type="hidden" name="accion" value="iniciar">
+                <button type="submit" class="boton boton-principal">Iniciar atencion</button>
+            </form>
+            <form th:if="${acciones.contains('resolver')}" th:action="@{/solicitudes/{id}/estado(id=${solicitud.idSolicitud})}"
+                  method="post">
+                <input type="hidden" name="accion" value="resolver">
+                <button type="submit" class="boton boton-principal">Marcar como resuelta</button>
+            </form>
+            <form th:if="${puedeCerrar}" th:action="@{/solicitudes/{id}/confirmar(id=${solicitud.idSolicitud})}"
+                  method="post">
+                <button type="submit" class="boton boton-principal">Confirmar solucion</button>
+            </form>
+        </div>
+
+        <form class="formulario formulario-reapertura" th:if="${puedeCerrar}"
+              th:action="@{/solicitudes/{id}/reabrir(id=${solicitud.idSolicitud})}" method="post">
+            <div class="campo">
+                <label for="motivo">Motivo de reapertura</label>
+                <textarea id="motivo" name="motivo" rows="3" maxlength="300" required></textarea>
+                <p class="nota-campo">Obligatorio para reabrir la solicitud.</p>
+            </div>
+            <div class="acciones">
+                <button type="submit" class="boton boton-suave">Reabrir solicitud</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="bloque">
+        <h2>Comentarios de trabajo</h2>
+        <p class="vacio" th:if="${#lists.isEmpty(comentarios)}">Todavia no hay comentarios.</p>
+
+        <ul class="comentarios" th:unless="${#lists.isEmpty(comentarios)}">
+            <li th:each="comentario : ${comentarios}">
+                <p class="comentario-meta">
+                    <span th:text="${comentario.autor.nombreCompleto}">Autor</span>
+                    <span th:text="${comentario.fechaTexto}">Fecha</span>
+                </p>
+                <p class="comentario-texto" th:text="${comentario.texto}">Texto</p>
+            </li>
+        </ul>
+
+        <form class="formulario" th:if="${puedeComentar}"
+              th:action="@{/solicitudes/{id}/comentarios(id=${solicitud.idSolicitud})}" method="post">
+            <div class="campo">
+                <label for="texto">Nuevo comentario</label>
+                <textarea id="texto" name="texto" rows="4" maxlength="1000"></textarea>
+            </div>
+            <div class="acciones">
+                <button type="submit" class="boton boton-principal">Registrar comentario</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="bloque">
+        <h2>Historial</h2>
+        <p class="vacio" th:if="${#lists.isEmpty(historial)}">Todavia no hay eventos registrados.</p>
+
+        <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(historial)}">
+            <table class="tabla">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Actor</th>
+                    <th>Accion</th>
+                    <th>Campo</th>
+                    <th>Anterior</th>
+                    <th>Nuevo</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="evento : ${historial}">
+                    <td th:text="${evento.fechaTexto}">Fecha</td>
+                    <td th:text="${evento.actor.nombreUsuario}">Actor</td>
+                    <td th:text="${evento.accion}">Accion</td>
+                    <td th:text="${evento.campo}">Campo</td>
+                    <td th:text="${evento.valorAnterior}">Anterior</td>
+                    <td th:text="${evento.valorNuevo}">Nuevo</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <p>
+        <a th:if="${usuarioActual.rol.name() == 'AGENTE'}" th:href="@{/solicitudes/mis-asignadas}">Volver a mis asignadas</a>
+        <a th:if="${usuarioActual.rol.name() == 'COORDINADOR'}" th:href="@{/coordinacion/solicitudes}">Volver a la bandeja</a>
+        <a th:if="${usuarioActual.rol.name() == 'SOLICITANTE'}" th:href="@{/solicitudes}">Volver a mis solicitudes</a>
+    </p>
 </main>
 
 <footer th:replace="~{layout/layout :: pie}"></footer>

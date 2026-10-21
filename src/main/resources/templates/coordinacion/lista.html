@@ -8,7 +8,7 @@
 
 <main class="contenido">
     <h1>Bandeja de coordinacion</h1>
-    <p class="entrada">Todas las solicitudes registradas. Ajuste la prioridad para ordenar la atencion.</p>
+    <p class="entrada">Todas las solicitudes registradas. Asigne un agente y ajuste la prioridad para ordenar la atencion.</p>
 
     <div th:replace="~{layout/layout :: avisos}"></div>
 
@@ -22,6 +22,18 @@
            th:classappend="${orden == 'fecha'} ? 'orden-activo'">fecha</a>
     </nav>
 
+    <nav class="orden" aria-label="Filtro por estado">
+        <span>Filtrar por estado:</span>
+        <a th:href="@{/coordinacion/solicitudes(orden=${orden})}"
+           th:classappend="${estado == null} ? 'orden-activo'">todos</a>
+        <a th:each="opcion : ${estados}"
+           th:href="@{/coordinacion/solicitudes(orden=${orden}, estado=${opcion.name()})}"
+           th:text="${opcion.name()}"
+           th:classappend="${estado == opcion.name()} ? 'orden-activo'">ESTADO</a>
+    </nav>
+
+    <p class="nota-campo" th:if="${estado != null}" th:text="'Estado aplicado: ' + ${estado}">Estado aplicado</p>
+
     <p class="vacio" th:if="${#lists.isEmpty(solicitudes)}">Todavia no hay solicitudes registradas.</p>
 
     <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(solicitudes)}">
@@ -32,9 +44,11 @@
                 <th>Titulo</th>
                 <th>Categoria</th>
                 <th>Solicitante</th>
+                <th>Agente asignado</th>
                 <th>Prioridad</th>
                 <th>Estado</th>
                 <th>Creacion</th>
+                <th>Asignar</th>
                 <th>Cambiar prioridad</th>
             </tr>
             </thead>
@@ -44,22 +58,65 @@
                 <td th:text="${solicitud.titulo}">Titulo</td>
                 <td th:text="${solicitud.categoria}">Categoria</td>
                 <td th:text="${solicitud.solicitante.nombreCompleto}">Solicitante</td>
+                <td th:if="${solicitud.agenteAsignado != null}"
+                    th:text="${solicitud.agenteAsignado.nombreCompleto}">Nombre</td>
+                <td th:if="${solicitud.agenteAsignado == null}">Sin asignar</td>
                 <td th:text="${solicitud.prioridad}">Prioridad</td>
                 <td th:text="${solicitud.estado}">Estado</td>
                 <td th:text="${solicitud.fechaCreacionTexto}">Fecha</td>
                 <td>
+                    <form class="formulario-asignacion"
+                          th:if="${solicitud.estado.name() == 'NUEVO'
+                                   or solicitud.estado.name() == 'ASIGNADO'
+                                   or solicitud.estado.name() == 'REABIERTO'}"
+                          th:action="@{/coordinacion/solicitudes/{id}/asignar(id=${solicitud.idSolicitud})}"
+                          method="post">
+                        <div class="campo-celda">
+                            <label th:for="'agente-' + ${solicitud.idSolicitud}"
+                                   th:text="'Agente para la solicitud ' + ${solicitud.idSolicitud}">Agente</label>
+                            <select th:id="'agente-' + ${solicitud.idSolicitud}" name="agenteId" required>
+                                <option value="">Seleccione un agente</option>
+                                <option th:each="agente : ${agentes}"
+                                        th:value="${agente.idUsuario}"
+                                        th:text="${agente.nombreCompleto}"
+                                        th:selected="${solicitud.agenteAsignado != null
+                                                      and agente.idUsuario == solicitud.agenteAsignado.idUsuario}">Agente</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="boton boton-suave">Asignar</button>
+                    </form>
+                    <span th:unless="${solicitud.estado.name() == 'NUEVO'
+                                      or solicitud.estado.name() == 'ASIGNADO'
+                                      or solicitud.estado.name() == 'REABIERTO'}">No disponible</span>
+                </td>
+                <td>
                     <form class="formulario-prioridad"
                           th:action="@{/coordinacion/solicitudes/{id}/prioridad(id=${solicitud.idSolicitud})}"
                           method="post">
-                        <label class="oculto-visual" th:for="'prioridad-' + ${solicitud.idSolicitud}"
-                               th:text="'Prioridad para la solicitud ' + ${solicitud.idSolicitud}">Prioridad</label>
-                        <select th:id="'prioridad-' + ${solicitud.idSolicitud}" name="prioridad">
-                            <option th:each="prioridad : ${prioridades}"
-                                    th:value="${prioridad}"
-                                    th:text="${prioridad}"
-                                    th:selected="${prioridad == solicitud.prioridad}">Opcion</option>
-                        </select>
+                        <div class="campos-prioridad">
+                            <div class="campo-celda">
+                                <label th:for="'prioridad-' + ${solicitud.idSolicitud}"
+                                       th:text="'Prioridad para la solicitud ' + ${solicitud.idSolicitud}">Prioridad</label>
+                                <select th:id="'prioridad-' + ${solicitud.idSolicitud}" name="prioridad">
+                                    <option th:each="prioridad : ${prioridades}"
+                                            th:value="${prioridad}"
+                                            th:text="${prioridad}"
+                                            th:selected="${prioridad == solicitud.prioridad}">Opcion</option>
+                                </select>
+                            </div>
+                            <div class="campo-celda">
+                                <label th:for="'justificacion-' + ${solicitud.idSolicitud}">Justificacion</label>
+                                <input th:id="'justificacion-' + ${solicitud.idSolicitud}" type="text"
+                                       name="justificacion" maxlength="300">
+                            </div>
+                            <div class="campo-celda">
+                                <label th:for="'fechaObjetivo-' + ${solicitud.idSolicitud}">Fecha objetivo</label>
+                                <input th:id="'fechaObjetivo-' + ${solicitud.idSolicitud}" type="date"
+                                       name="fechaObjetivo">
+                            </div>
+                        </div>
                         <button type="submit" class="boton boton-suave">Aplicar</button>
+                        <p class="nota-campo">Obligatorios al pasar a ALTA</p>
                     </form>
                 </td>
             </tr>

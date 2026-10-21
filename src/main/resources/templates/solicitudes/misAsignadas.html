@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Mis asignadas</h1>
+    <p class="entrada">Solicitudes de las que usted es el agente asignado.</p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <p class="vacio" th:if="${#lists.isEmpty(solicitudes)}">No tiene solicitudes asignadas.</p>
+
+    <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(solicitudes)}">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Numero</th>
+                <th>Titulo</th>
+                <th>Solicitante</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Ultima actualizacion</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="solicitud : ${solicitudes}">
+                <td class="celda-numero" th:text="${solicitud.idSolicitud}">1</td>
+                <td th:text="${solicitud.titulo}">Titulo</td>
+                <td th:text="${solicitud.solicitante.nombreCompleto}">Solicitante</td>
+                <td th:text="${solicitud.prioridad}">Prioridad</td>
+                <td th:text="${solicitud.estado}">Estado</td>
+                <td th:text="${solicitud.fechaActualizacionTexto}">Fecha</td>
+                <td><a th:href="@{/solicitudes/{id}(id=${solicitud.idSolicitud})}">Ver detalle</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

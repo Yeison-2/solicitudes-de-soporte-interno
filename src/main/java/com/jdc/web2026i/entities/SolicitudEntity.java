@@ -16,6 +16,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -70,6 +71,28 @@ public class SolicitudEntity implements Serializable {
     @NotNull
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_agente_asignado")
+    private UsuarioEntity agenteAsignado;
+
+    @Column(name = "fecha_asignacion")
+    private LocalDateTime fechaAsignacion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_asignado_por")
+    private UsuarioEntity asignadoPor;
+
+    @Size(max = 300)
+    @Column(name = "justificacion_prioridad", length = 300)
+    private String justificacionPrioridad;
+
+    @Column(name = "fecha_objetivo")
+    private LocalDate fechaObjetivo;
+
+    @Size(max = 300)
+    @Column(name = "motivo_reapertura", length = 300)
+    private String motivoReapertura;
 
     public Long getIdSolicitud() {
         return idSolicitud;
@@ -149,6 +172,65 @@ public class SolicitudEntity implements Serializable {
 
     public String getFechaActualizacionTexto() {
         return formatear(fechaActualizacion);
+    }
+
+    public UsuarioEntity getAgenteAsignado() {
+        return agenteAsignado;
+    }
+
+    public void setAgenteAsignado(UsuarioEntity agenteAsignado) {
+        this.agenteAsignado = agenteAsignado;
+    }
+
+    public LocalDateTime getFechaAsignacion() {
+        return fechaAsignacion;
+    }
+
+    public String getFechaAsignacionTexto() {
+        return formatear(fechaAsignacion);
+    }
+
+    public void setFechaAsignacion(LocalDateTime fechaAsignacion) {
+        this.fechaAsignacion = fechaAsignacion;
+    }
+
+    public UsuarioEntity getAsignadoPor() {
+        return asignadoPor;
+    }
+
+    public void setAsignadoPor(UsuarioEntity asignadoPor) {
+        this.asignadoPor = asignadoPor;
+    }
+
+    public String getJustificacionPrioridad() {
+        return justificacionPrioridad;
+    }
+
+    public void setJustificacionPrioridad(String justificacionPrioridad) {
+        this.justificacionPrioridad = justificacionPrioridad;
+    }
+
+    public LocalDate getFechaObjetivo() {
+        return fechaObjetivo;
+    }
+
+    public void setFechaObjetivo(LocalDate fechaObjetivo) {
+        this.fechaObjetivo = fechaObjetivo;
+    }
+
+    public String getMotivoReapertura() {
+        return motivoReapertura;
+    }
+
+    public void setMotivoReapertura(String motivoReapertura) {
+        this.motivoReapertura = motivoReapertura;
+    }
+
+    public String getFechaObjetivoTexto() {
+        if (fechaObjetivo == null) {
+            return "";
+        }
+        return fechaObjetivo.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     private String formatear(LocalDateTime fecha) {

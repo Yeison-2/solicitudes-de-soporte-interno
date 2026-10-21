@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Notificaciones</h1>
+    <p class="entrada">Avisos registrados al asignarle solicitudes. Se marcan como leidas al abrir esta pagina.</p>
+
+    <p class="vacio" th:if="${#lists.isEmpty(notificaciones)}">No tiene notificaciones.</p>
+
+    <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(notificaciones)}">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Mensaje</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Solicitud</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="notificacion : ${notificaciones}">
+                <td th:text="${notificacion.mensaje}">Mensaje</td>
+                <td th:text="${notificacion.fechaTexto}">Fecha</td>
+                <td th:text="${notificacion.leida} ? 'Leida' : 'No leida'">Leida</td>
+                <td>
+                    <a th:href="@{/solicitudes/{id}(id=${notificacion.solicitud.idSolicitud})}"
+                       th:text="'Solicitud ' + ${notificacion.solicitud.idSolicitud}">Solicitud</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

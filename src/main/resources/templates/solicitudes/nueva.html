@@ -8,8 +8,7 @@
 
 <main class="contenido">
     <h1>Nueva solicitud</h1>
-    <p class="entrada">Describa lo que necesita. El numero, la fecha, el estado y la prioridad los
-        asigna el sistema.</p>
+    <p class="entrada">Describa lo que necesita. El numero, la fecha y el estado los asigna el sistema.</p>
 
     <div th:replace="~{layout/layout :: avisos}"></div>
 
@@ -33,6 +32,30 @@
                 <option th:each="categoria : ${categorias}" th:value="${categoria}" th:text="${categoria}">Opcion</option>
             </select>
             <p class="error-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">Error</p>
+        </div>
+
+        <div class="campo">
+            <label for="prioridad">Prioridad</label>
+            <select id="prioridad" th:field="*{prioridad}">
+                <option value="">Seleccione una prioridad</option>
+                <option th:each="prioridad : ${prioridades}" th:value="${prioridad}"
+                        th:text="${prioridad}">Opcion</option>
+            </select>
+            <p class="error-campo" th:if="${#fields.hasErrors('prioridad')}" th:errors="*{prioridad}">Error</p>
+        </div>
+
+        <div class="campo">
+            <label for="justificacionPrioridad">Justificacion de la prioridad</label>
+            <input id="justificacionPrioridad" type="text" th:field="*{justificacionPrioridad}" maxlength="300">
+            <p class="error-campo" th:if="${#fields.hasErrors('justificacionPrioridad')}"
+               th:errors="*{justificacionPrioridad}">Error</p>
+        </div>
+
+        <div class="campo">
+            <label for="fechaObjetivo">Fecha objetivo</label>
+            <input id="fechaObjetivo" type="date" th:field="*{fechaObjetivo}">
+            <p class="nota-campo">Obligatorios si la prioridad es ALTA.</p>
+            <p class="error-campo" th:if="${#fields.hasErrors('fechaObjetivo')}" th:errors="*{fechaObjetivo}">Error</p>
         </div>
 
         <div class="acciones">

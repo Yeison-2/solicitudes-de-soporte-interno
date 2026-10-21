@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Registro de auditoria de un cambio realizado sobre una entidad del dominio.
@@ -44,12 +45,12 @@ public class RegistroAuditoriaEntity implements Serializable {
     @Column(name = "campo", nullable = false, length = 30)
     private String campo;
 
-    @Size(max = 200)
-    @Column(name = "valor_anterior", length = 200)
+    @Size(max = 300)
+    @Column(name = "valor_anterior", length = 300)
     private String valorAnterior;
 
-    @Size(max = 200)
-    @Column(name = "valor_nuevo", length = 200)
+    @Size(max = 300)
+    @Column(name = "valor_nuevo", length = 300)
     private String valorNuevo;
 
     @NotNull
@@ -124,6 +125,16 @@ public class RegistroAuditoriaEntity implements Serializable {
 
     public LocalDateTime getFecha() {
         return fecha;
+    }
+
+    /**
+     * Fecha formateada para las vistas (mismo formato que el resto de fichas).
+     */
+    public String getFechaTexto() {
+        if (fecha == null) {
+            return "";
+        }
+        return fecha.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     public void setFecha(LocalDateTime fecha) {

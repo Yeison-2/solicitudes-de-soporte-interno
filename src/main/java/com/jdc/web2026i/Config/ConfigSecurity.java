@@ -30,6 +30,8 @@ public class ConfigSecurity {
                         .requestMatchers("/login", "/css/**", "/error", "/favicon.ico").permitAll()
                         .requestMatchers("/solicitudes/nueva").hasRole("SOLICITANTE")
                         .requestMatchers(HttpMethod.GET, "/solicitudes").hasRole("SOLICITANTE")
+                        .requestMatchers("/solicitudes/mis-asignadas").hasRole("AGENTE")
+                        .requestMatchers("/notificaciones").hasRole("AGENTE")
                         .requestMatchers("/coordinacion/**").hasRole("COORDINADOR")
                         .requestMatchers("/solicitudes/**").authenticated()
                         .anyRequest().authenticated())

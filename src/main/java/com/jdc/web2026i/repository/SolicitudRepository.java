@@ -14,4 +14,6 @@ public interface SolicitudRepository extends JpaRepository<SolicitudEntity, Long
     List<SolicitudEntity> findBySolicitante(UsuarioEntity solicitante, Sort sort);
 
     boolean existsBySolicitanteIdUsuario(Long idUsuario);
+
+    List<SolicitudEntity> findByAgenteAsignadoIdUsuarioOrderByFechaActualizacionDesc(Long idUsuario);
 }
