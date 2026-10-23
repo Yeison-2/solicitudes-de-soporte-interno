@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Indicadores del servicio</h1>
+    <p class="entrada">Volumen de solicitudes por estado y tiempo mediano de ciclo del conjunto filtrado.
+        Los indicadores son agregados: no se agrupan por persona.</p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <form class="formulario-filtros" th:action="@{/coordinacion/indicadores}" method="get">
+        <div class="campo-celda">
+            <label for="estado">Estado</label>
+            <select id="estado" name="estado">
+                <option value="">Todos</option>
+                <option th:each="opcion : ${estados}"
+                        th:value="${opcion.name()}"
+                        th:text="${opcion.name()}"
+                        th:selected="${estado == opcion.name()}">ESTADO</option>
+            </select>
+        </div>
+        <div class="campo-celda">
+            <label for="prioridad">Prioridad</label>
+            <select id="prioridad" name="prioridad">
+                <option value="">Todas</option>
+                <option th:each="opcion : ${prioridades}"
+                        th:value="${opcion.name()}"
+                        th:text="${opcion.name()}"
+                        th:selected="${prioridad == opcion.name()}">PRIORIDAD</option>
+            </select>
+        </div>
+        <div class="campo-celda">
+            <label for="categoria">Categoria</label>
+            <select id="categoria" name="categoria">
+                <option value="">Todas</option>
+                <option th:each="opcion : ${categorias}"
+                        th:value="${opcion.name()}"
+                        th:text="${opcion.name()}"
+                        th:selected="${categoria == opcion.name()}">CATEGORIA</option>
+            </select>
+        </div>
+        <div class="campo-celda">
+            <label for="desde">Creadas desde</label>
+            <input id="desde" type="date" name="desde" th:value="${desde}">
+        </div>
+        <div class="campo-celda">
+            <label for="hasta">Creadas hasta</label>
+            <input id="hasta" type="date" name="hasta" th:value="${hasta}">
+        </div>
+        <div class="acciones">
+            <button type="submit" class="boton boton-principal">Consultar</button>
+        </div>
+    </form>
+
+    <p class="nota-campo" th:text="'Filtros aplicados: ' + ${filtrosAplicados}">Filtros aplicados</p>
+    <p th:text="'Solicitudes en el conjunto: ' + ${indicadores.total}">Solicitudes en el conjunto</p>
+
+    <div class="tabla-envoltorio">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Estado</th>
+                <th>Solicitudes</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="fila : ${indicadores.volumen}">
+                <td th:text="${fila.key}">ESTADO</td>
+                <td th:text="${fila.value}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p th:if="${indicadores.medianaHorasCiclo != null}"
+       th:text="'Tiempo mediano de ciclo: ' + ${#numbers.formatDecimal(indicadores.medianaHorasCiclo, 1, 1)} + ' horas (mediana de las solicitudes cerradas del conjunto, de la creacion a la confirmacion)'">
+        Tiempo mediano de ciclo</p>
+    <p class="nota-campo" th:if="${indicadores.medianaHorasCiclo == null}">
+        No hay solicitudes cerradas con fecha de cierre en el conjunto: no se puede calcular la mediana.</p>
+    <p class="nota-campo" th:if="${indicadores.cerradasSinFechaCierre > 0}"
+       th:text="'Solicitudes cerradas sin fecha de cierre registrada: ' + ${indicadores.cerradasSinFechaCierre} + ' (no aportan a la mediana).'">Cerradas sin fecha</p>
+
+    <p>
+        <a th:href="@{/coordinacion/reporte.csv(estado=${estado}, prioridad=${prioridad}, categoria=${categoria}, desde=${desde}, hasta=${hasta})}">Exportar CSV</a>
+        <a th:href="@{/coordinacion/solicitudes}">Volver a la bandeja</a>
+    </p>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

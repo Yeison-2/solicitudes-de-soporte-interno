@@ -1,6 +1,7 @@
 package com.jdc.web2026i.services;
 
 import com.jdc.web2026i.DTO.SolicitudFormularioDTO;
+import com.jdc.web2026i.entities.CategoriaSolicitud;
 import com.jdc.web2026i.entities.EstadoSolicitud;
 import com.jdc.web2026i.entities.PrioridadSolicitud;
 import com.jdc.web2026i.entities.RegistroAuditoriaEntity;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class SolicitudServiceImpl implements SolicitudService {
@@ -34,6 +36,8 @@ public class SolicitudServiceImpl implements SolicitudService {
     private static final String ACCION_REAPERTURA = "REAPERTURA";
     private static final String CAMPO_MOTIVO_REAPERTURA = "motivo_reapertura";
     private static final int LONGITUD_MAXIMA_TEXTO = 300;
+    private static final LocalDateTime DESDE_MINIMO = LocalDateTime.of(1970, 1, 1, 0, 0);
+    private static final LocalDateTime HASTA_MAXIMO = LocalDateTime.of(9999, 12, 31, 0, 0);
 
     private final SolicitudRepository solicitudRepository;
     private final RegistroAuditoriaRepository registroAuditoriaRepository;
@@ -99,9 +103,10 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .orElseThrow(SolicitudNoEncontradaException::new);
         boolean esPropietario = solicitud.getSolicitante().getIdUsuario().equals(usuario.getIdUsuario());
         boolean esCoordinador = usuario.getRol() == Rol.COORDINADOR;
+        boolean esAuditor = usuario.getRol() == Rol.AUDITOR;
         boolean esAgenteAsignado = solicitud.getAgenteAsignado() != null
                 && solicitud.getAgenteAsignado().getIdUsuario().equals(usuario.getIdUsuario());
-        if (!esPropietario && !esCoordinador && !esAgenteAsignado) {
+        if (!esPropietario && !esCoordinador && !esAuditor && !esAgenteAsignado) {
             throw new AccesoDenegadoException();
         }
         return solicitud;
@@ -124,7 +129,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     public List<SolicitudEntity> listarParaCoordinacion(String orden) {
         List<SolicitudEntity> solicitudes = solicitudRepository.findAll(
                 Sort.by(Sort.Direction.DESC, "fechaCreacion"));
-        String clave = orden == null ? "" : orden.trim().toLowerCase();
+        String clave = orden == null ? "" : orden.trim().toLowerCase(Locale.ROOT);
         switch (clave) {
             case "prioridad" -> solicitudes.sort(
                     (a, b) -> Integer.compare(pesoPrioridad(a.getPrioridad()), pesoPrioridad(b.getPrioridad())));
@@ -138,6 +143,58 @@ public class SolicitudServiceImpl implements SolicitudService {
             }
         }
         return solicitudes;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SolicitudEntity> buscar(String texto, EstadoSolicitud estado, PrioridadSolicitud prioridad,
+                                        CategoriaSolicitud categoria, UsuarioEntity usuario) {
+        Long solicitanteId = 0L;
+        Long agenteId = 0L;
+        if (usuario.getRol() == Rol.SOLICITANTE) {
+            solicitanteId = usuario.getIdUsuario();
+        } else if (usuario.getRol() == Rol.AGENTE) {
+            agenteId = usuario.getIdUsuario();
+        }
+        String limpio = texto == null ? null : texto.trim();
+        if (limpio != null && limpio.isEmpty()) {
+            limpio = null;
+        }
+        boolean sinTexto = limpio == null;
+        String patron = sinTexto ? "" : "%" + escaparLike(limpio.toLowerCase(Locale.ROOT)) + "%";
+        return solicitudRepository.buscar(patron, sinTexto,
+                estado == null ? EstadoSolicitud.NUEVO : estado, estado == null,
+                prioridad == null ? PrioridadSolicitud.MEDIA : prioridad, prioridad == null,
+                categoria == null ? CategoriaSolicitud.OTROS : categoria, categoria == null,
+                solicitanteId, solicitanteId == 0L,
+                agenteId, agenteId == 0L,
+                DESDE_MINIMO, true,
+                HASTA_MAXIMO, true);
+    }
+
+    /**
+     * Neutraliza los comodines del LIKE: el texto del usuario se busca tal
+     * cual, nunca como patron. El caracter de escape es '!' (declarado en la
+     * consulta con {@code escape '!'}).
+     */
+    private String escaparLike(String texto) {
+        return texto.replace("!", "!!").replace("%", "!%").replace("_", "!_");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SolicitudEntity> listarParaReporte(EstadoSolicitud estado, PrioridadSolicitud prioridad,
+                                                   CategoriaSolicitud categoria, LocalDate desde,
+                                                   LocalDate hasta) {
+        LocalDateTime inicio = desde == null ? DESDE_MINIMO : desde.atStartOfDay();
+        LocalDateTime fin = hasta == null ? HASTA_MAXIMO : hasta.plusDays(1).atStartOfDay();
+        return solicitudRepository.buscar("", true,
+                estado == null ? EstadoSolicitud.NUEVO : estado, estado == null,
+                prioridad == null ? PrioridadSolicitud.MEDIA : prioridad, prioridad == null,
+                categoria == null ? CategoriaSolicitud.OTROS : categoria, categoria == null,
+                0L, true, 0L, true,
+                inicio, desde == null,
+                fin, hasta == null);
     }
 
     @Override
@@ -287,7 +344,7 @@ public class SolicitudServiceImpl implements SolicitudService {
     }
 
     private EstadoSolicitud resolverTransicion(EstadoSolicitud estadoActual, String accion) {
-        String clave = accion == null ? "" : accion.trim().toLowerCase();
+        String clave = accion == null ? "" : accion.trim().toLowerCase(Locale.ROOT);
         return switch (clave) {
             case "iniciar" -> {
                 if (estadoActual != EstadoSolicitud.ASIGNADO && estadoActual != EstadoSolicitud.REABIERTO) {

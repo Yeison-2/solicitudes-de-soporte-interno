@@ -152,7 +152,9 @@ public class SolicitudController {
         UsuarioEntity actor = usuarioService.obtenerPorNombreUsuario(autenticacion.getName());
         try {
             solicitudService.cambiarEstado(id, accion, actor);
-        } catch (IllegalArgumentException | AccesoDenegadoException excepcion) {
+        } catch (AccesoDenegadoException excepcion) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, excepcion.getMessage());
+        } catch (IllegalArgumentException excepcion) {
             redireccion.addFlashAttribute("error", excepcion.getMessage());
             return "redirect:/solicitudes/" + id;
         }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Historial de auditoria</h1>
+    <p class="entrada">Registro inmutable de los cambios sobre las solicitudes. El actor se muestra con su
+        identificador de usuario, no con su nombre completo.</p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <form class="formulario-filtros" th:action="@{/auditoria}" method="get">
+        <div class="campo-celda">
+            <label for="solicitudId">Solicitud</label>
+            <input id="solicitudId" type="text" name="solicitudId" inputmode="numeric"
+                   th:value="${solicitudId}" maxlength="20">
+        </div>
+        <div class="campo-celda">
+            <label for="desde">Desde</label>
+            <input id="desde" type="date" name="desde" th:value="${desde}">
+        </div>
+        <div class="campo-celda">
+            <label for="hasta">Hasta</label>
+            <input id="hasta" type="date" name="hasta" th:value="${hasta}">
+        </div>
+        <div class="acciones">
+            <button type="submit" class="boton boton-principal">Filtrar</button>
+        </div>
+    </form>
+
+    <p class="nota-campo" th:text="'Registros encontrados: ' + ${totalRegistros}">Registros encontrados</p>
+
+    <p class="vacio" th:if="${#lists.isEmpty(registros)}">No hay registros de auditoria con esos filtros.</p>
+
+    <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(registros)}">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Actor</th>
+                <th>Accion</th>
+                <th>Campo</th>
+                <th>Anterior</th>
+                <th>Nuevo</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="registro : ${registros}">
+                <td th:text="${registro.fechaTexto}">Fecha</td>
+                <td th:text="${registro.actor.nombreUsuario}">Actor</td>
+                <td th:text="${registro.accion}">Accion</td>
+                <td th:text="${registro.campo}">Campo</td>
+                <td th:text="${registro.valorAnterior}">Anterior</td>
+                <td th:text="${registro.valorNuevo}">Nuevo</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="orden" th:if="${totalPaginas > 1}" aria-label="Paginacion del historial">
+        <span th:text="'Pagina ' + (${pagina} + 1) + ' de ' + ${totalPaginas}">Pagina 1</span>
+        <a th:if="${pagina > 0}"
+           th:href="@{/auditoria(solicitudId=${solicitudId}, desde=${desde}, hasta=${hasta}, page=${pagina - 1})}">Anterior</a>
+        <a th:each="numero : ${numerosDePagina}"
+           th:href="@{/auditoria(solicitudId=${solicitudId}, desde=${desde}, hasta=${hasta}, page=${numero})}"
+           th:text="${numero + 1}"
+           th:classappend="${numero == pagina} ? 'orden-activo'">1</a>
+        <a th:if="${pagina < totalPaginas - 1}"
+           th:href="@{/auditoria(solicitudId=${solicitudId}, desde=${desde}, hasta=${hasta}, page=${pagina + 1})}">Siguiente</a>
+    </nav>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>

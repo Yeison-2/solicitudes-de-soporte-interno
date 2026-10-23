@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Bandeja del coordinador: ver todas las solicitudes, asignarlas y priorizarlas.
@@ -132,7 +133,7 @@ public class CoordinacionController {
             return null;
         }
         try {
-            return EstadoSolicitud.valueOf(limpio.trim().toUpperCase());
+            return EstadoSolicitud.valueOf(limpio.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException excepcion) {
             return null;
         }

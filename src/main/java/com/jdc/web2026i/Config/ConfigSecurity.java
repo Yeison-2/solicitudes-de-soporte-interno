@@ -32,6 +32,7 @@ public class ConfigSecurity {
                         .requestMatchers(HttpMethod.GET, "/solicitudes").hasRole("SOLICITANTE")
                         .requestMatchers("/solicitudes/mis-asignadas").hasRole("AGENTE")
                         .requestMatchers("/notificaciones").hasRole("AGENTE")
+                        .requestMatchers("/auditoria").hasAnyRole("AUDITOR", "COORDINADOR")
                         .requestMatchers("/coordinacion/**").hasRole("COORDINADOR")
                         .requestMatchers("/solicitudes/**").authenticated()
                         .anyRequest().authenticated())

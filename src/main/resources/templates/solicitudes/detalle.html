@@ -56,7 +56,7 @@
             class="ficha-texto" th:text="${solicitud.motivoReapertura}">Motivo</dd>
     </dl>
 
-    <section class="bloque">
+    <section class="bloque" th:unless="${usuarioActual.rol.name() == 'AUDITOR'}">
         <h2>Acciones</h2>
         <p class="entrada" th:if="${usuarioActual.rol.name() == 'COORDINADOR'}">
             Las acciones de asignacion y prioridad se gestionan en la bandeja de coordinacion.
@@ -108,7 +108,7 @@
             </li>
         </ul>
 
-        <form class="formulario" th:if="${puedeComentar}"
+        <form class="formulario" th:if="${puedeComentar and usuarioActual.rol.name() != 'AUDITOR'}"
               th:action="@{/solicitudes/{id}/comentarios(id=${solicitud.idSolicitud})}" method="post">
             <div class="campo">
                 <label for="texto">Nuevo comentario</label>
@@ -154,6 +154,8 @@
         <a th:if="${usuarioActual.rol.name() == 'AGENTE'}" th:href="@{/solicitudes/mis-asignadas}">Volver a mis asignadas</a>
         <a th:if="${usuarioActual.rol.name() == 'COORDINADOR'}" th:href="@{/coordinacion/solicitudes}">Volver a la bandeja</a>
         <a th:if="${usuarioActual.rol.name() == 'SOLICITANTE'}" th:href="@{/solicitudes}">Volver a mis solicitudes</a>
+        <a th:if="${usuarioActual.rol.name() == 'AUDITOR'}" th:href="@{/auditoria}">Volver al historial</a>
+        <a th:if="${usuarioActual.rol.name() == 'AUDITOR'}" th:href="@{/solicitudes/buscar}">Buscar solicitudes</a>
     </p>
 </main>
 

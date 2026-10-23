@@ -34,6 +34,11 @@
 
     <p class="nota-campo" th:if="${estado != null}" th:text="'Estado aplicado: ' + ${estado}">Estado aplicado</p>
 
+    <nav class="orden" aria-label="Consultas del servicio">
+        <a th:href="@{/coordinacion/indicadores(estado=${estado})}">Ver indicadores</a>
+        <a th:href="@{/coordinacion/reporte.csv(estado=${estado})}">Exportar CSV</a>
+    </nav>
+
     <p class="vacio" th:if="${#lists.isEmpty(solicitudes)}">Todavia no hay solicitudes registradas.</p>
 
     <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(solicitudes)}">

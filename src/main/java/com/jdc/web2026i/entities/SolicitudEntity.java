@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -24,7 +25,11 @@ import java.time.format.DateTimeFormatter;
  * Solicitud de soporte creada por un solicitante.
  */
 @Entity
-@Table(name = "solicitudes")
+@Table(name = "solicitudes", indexes = {
+        @Index(name = "idx_solicitudes_estado", columnList = "estado"),
+        @Index(name = "idx_solicitudes_prioridad", columnList = "prioridad"),
+        @Index(name = "idx_solicitudes_categoria", columnList = "categoria")
+})
 public class SolicitudEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

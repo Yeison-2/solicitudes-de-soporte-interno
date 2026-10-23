@@ -20,10 +20,15 @@
                th:href="@{/solicitudes/nueva}">Nueva solicitud</a>
             <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'COORDINADOR'}"
                th:href="@{/coordinacion/solicitudes}">Bandeja de coordinacion</a>
+            <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'COORDINADOR'}"
+               th:href="@{/coordinacion/indicadores}">Indicadores</a>
             <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'AGENTE'}"
                th:href="@{/solicitudes/mis-asignadas}">Mis asignadas</a>
             <a th:if="${usuarioActual != null and usuarioActual.rol.name() == 'AGENTE'}"
                th:href="@{/notificaciones}">Notificaciones</a>
+            <a th:if="${usuarioActual != null}" th:href="@{/solicitudes/buscar}">Buscar</a>
+            <a th:if="${usuarioActual != null and (usuarioActual.rol.name() == 'AUDITOR' or usuarioActual.rol.name() == 'COORDINADOR')}"
+               th:href="@{/auditoria}">Historial</a>
         </nav>
         <div class="sesion" th:if="${usuarioActual != null}">
             <span class="sesion-nombre" th:text="${usuarioActual.nombreCompleto}">Nombre</span>

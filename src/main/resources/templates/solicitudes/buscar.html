@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{layout/layout :: head}"></head>
+
+<body>
+<header th:replace="~{layout/layout :: nav}"></header>
+
+<main class="contenido">
+    <h1>Buscar solicitudes</h1>
+    <p class="entrada">Busque por texto en el titulo y la descripcion y combine los filtros de estado,
+        prioridad y categoria. El resultado respeta los permisos de su rol.</p>
+
+    <div th:replace="~{layout/layout :: avisos}"></div>
+
+    <form class="formulario-filtros" th:action="@{/solicitudes/buscar}" method="get">
+        <div class="campo-celda">
+            <label for="q">Texto</label>
+            <input id="q" type="text" name="q" th:value="${texto}" maxlength="100">
+        </div>
+        <div class="campo-celda">
+            <label for="estado">Estado</label>
+            <select id="estado" name="estado">
+                <option value="">Todos</option>
+                <option th:each="opcion : ${estados}"
+                        th:value="${opcion.name()}"
+                        th:text="${opcion.name()}"
+                        th:selected="${estado == opcion.name()}">ESTADO</option>
+            </select>
+        </div>
+        <div class="campo-celda">
+            <label for="prioridad">Prioridad</label>
+            <select id="prioridad" name="prioridad">
+                <option value="">Todas</option>
+                <option th:each="opcion : ${prioridades}"
+                        th:value="${opcion.name()}"
+                        th:text="${opcion.name()}"
+                        th:selected="${prioridad == opcion.name()}">PRIORIDAD</option>
+            </select>
+        </div>
+        <div class="campo-celda">
+            <label for="categoria">Categoria</label>
+            <select id="categoria" name="categoria">
+                <option value="">Todas</option>
+                <option th:each="opcion : ${categorias}"
+                        th:value="${opcion.name()}"
+                        th:text="${opcion.name()}"
+                        th:selected="${categoria == opcion.name()}">CATEGORIA</option>
+            </select>
+        </div>
+        <div class="acciones">
+            <button type="submit" class="boton boton-principal">Buscar</button>
+        </div>
+    </form>
+
+    <p class="nota-campo" th:text="'Filtros aplicados: ' + ${filtrosAplicados}">Filtros aplicados</p>
+
+    <p class="vacio" th:if="${#lists.isEmpty(resultados)}">No hay solicitudes que coincidan con los filtros.</p>
+
+    <div class="tabla-envoltorio" th:unless="${#lists.isEmpty(resultados)}">
+        <table class="tabla">
+            <thead>
+            <tr>
+                <th>Numero</th>
+                <th>Titulo</th>
+                <th>Categoria</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+                <th>Solicitante</th>
+                <th>Ultima actualizacion</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="solicitud : ${resultados}">
+                <td class="celda-numero" th:text="${solicitud.idSolicitud}">1</td>
+                <td th:text="${solicitud.titulo}">Titulo</td>
+                <td th:text="${solicitud.categoria}">Categoria</td>
+                <td th:text="${solicitud.prioridad}">Prioridad</td>
+                <td th:text="${solicitud.estado}">Estado</td>
+                <td th:text="${solicitud.solicitante.nombreCompleto}">Solicitante</td>
+                <td th:text="${solicitud.fechaActualizacionTexto}">Fecha</td>
+                <td><a th:href="@{/solicitudes/{id}(id=${solicitud.idSolicitud})}">Ver detalle</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{layout/layout :: pie}"></footer>
+</body>
+</html>
