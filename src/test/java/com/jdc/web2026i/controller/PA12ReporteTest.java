@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class PA12ReporteTest extends PruebaBase {
 
-    private static final List<String> COLUMNAS = List.of("ID", "Titulo", "Categoria", "Prioridad", "Estado",
+    private static final List<String> COLUMNAS = List.of("ID", "Categoria", "Prioridad", "Estado",
             "FechaCreacion", "FechaActualizacion", "AgenteAsignado", "FechaCierre");
 
     @Autowired
@@ -101,8 +101,7 @@ class PA12ReporteTest extends PruebaBase {
         return celdas;
     }
 
-    private long exportacionesDe(UsuarioEntity actor) {
-        return registroAuditoriaRepository.findAll().stream()
+    private long exportacionesDe(UsuarioEntity actor) {        return registroAuditoriaRepository.findAll().stream()
                 .filter(registro -> "EXPORTACION_REPORTE".equals(registro.getAccion()))
                 .filter(registro -> registro.getActor() != null
                         && registro.getActor().getIdUsuario().equals(actor.getIdUsuario()))
@@ -114,42 +113,41 @@ class PA12ReporteTest extends PruebaBase {
         UsuarioEntity solicitante = crearUsuarioDePrueba("t-pa12-sol-filtros", Rol.SOLICITANTE);
         UsuarioEntity agente = crearUsuarioDePrueba("t-pa12-agente-filtros", Rol.AGENTE);
         crearUsuarioDePrueba("t-pa12-coord-filtros", Rol.COORDINADOR);
-        persistir(solicitante, "t-pa12 nuevo media", "Descripcion de prueba del reporte.",
+        SolicitudEntity nuevoMedia = persistir(solicitante, "t-pa12 nuevo media", "Descripcion de prueba del reporte.",
                 EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, agente);
-        persistir(solicitante, "t-pa12 nuevo baja", "Descripcion de prueba del reporte.",
+        SolicitudEntity nuevoBaja = persistir(solicitante, "t-pa12 nuevo baja", "Descripcion de prueba del reporte.",
                 EstadoSolicitud.NUEVO, PrioridadSolicitud.BAJA, CategoriaSolicitud.SOFTWARE, agente);
-        persistir(solicitante, "t-pa12 cerrado media", "Descripcion de prueba del reporte.",
+        SolicitudEntity cerradoMedia = persistir(solicitante, "t-pa12 cerrado media", "Descripcion de prueba del reporte.",
                 EstadoSolicitud.CERRADO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, agente);
         MockHttpSession sesion = iniciarSesion("t-pa12-coord-filtros", CLAVE_PRUEBA);
 
         String porEstado = csv(descargar(sesion, "estado", "NUEVO"));
-        assertTrue(porEstado.contains("t-pa12 nuevo media"));
-        assertTrue(porEstado.contains("t-pa12 nuevo baja"));
-        assertFalse(porEstado.contains("t-pa12 cerrado media"),
+        assertTrue(identificadores(porEstado).contains(String.valueOf(nuevoMedia.getIdSolicitud())));
+        assertTrue(identificadores(porEstado).contains(String.valueOf(nuevoBaja.getIdSolicitud())));
+        assertFalse(identificadores(porEstado).contains(String.valueOf(cerradoMedia.getIdSolicitud())),
                 "El CSV debe respetar el filtro de estado");
 
         String estadoYPrioridad = csv(descargar(sesion, "estado", "NUEVO", "prioridad", "MEDIA"));
-        assertTrue(estadoYPrioridad.contains("t-pa12 nuevo media"));
-        assertFalse(estadoYPrioridad.contains("t-pa12 nuevo baja"),
+        assertTrue(identificadores(estadoYPrioridad).contains(String.valueOf(nuevoMedia.getIdSolicitud())));
+        assertFalse(identificadores(estadoYPrioridad).contains(String.valueOf(nuevoBaja.getIdSolicitud())),
                 "Los filtros del CSV se combinan con AND");
-        assertFalse(estadoYPrioridad.contains("t-pa12 cerrado media"));
+        assertFalse(identificadores(estadoYPrioridad).contains(String.valueOf(cerradoMedia.getIdSolicitud())));
 
         String cerrados = csv(descargar(sesion, "estado", "CERRADO"));
-        assertTrue(cerrados.contains("t-pa12 cerrado media"));
-        assertFalse(cerrados.contains("t-pa12 nuevo media"));
+        assertTrue(identificadores(cerrados).contains(String.valueOf(cerradoMedia.getIdSolicitud())));
+        assertFalse(identificadores(cerrados).contains(String.valueOf(nuevoMedia.getIdSolicitud())));
 
         String[] lineas = porEstado.split("\r\n");
-        assertEquals(COLUMNAS, celdas(lineas[0]), "La cabecera debe tener exactamente las 9 columnas");
+        assertEquals(COLUMNAS, celdas(lineas[0]), "La cabecera debe tener exactamente las 8 columnas");
         boolean encontroFila = false;
         for (int indice = 1; indice < lineas.length; indice++) {
-            if (lineas[indice].contains("t-pa12 nuevo media")) {
+            if (lineas[indice].startsWith("\"" + nuevoMedia.getIdSolicitud() + "\"")) {
                 List<String> fila = celdas(lineas[indice]);
-                assertEquals(9, fila.size(), "Cada fila debe tener exactamente 9 columnas");
-                assertEquals("t-pa12 nuevo media", fila.get(1));
-                assertEquals("SOFTWARE", fila.get(2));
-                assertEquals("MEDIA", fila.get(3));
-                assertEquals("NUEVO", fila.get(4));
-                assertEquals("t-pa12-agente-filtros", fila.get(7));
+                assertEquals(8, fila.size(), "Cada fila debe tener exactamente 8 columnas");
+                assertEquals("SOFTWARE", fila.get(1));
+                assertEquals("MEDIA", fila.get(2));
+                assertEquals("NUEVO", fila.get(3));
+                assertEquals("t-pa12-agente-filtros", fila.get(6));
                 encontroFila = true;
             }
         }
@@ -166,7 +164,8 @@ class PA12ReporteTest extends PruebaBase {
 
         String contenido = csv(descargar(sesion));
 
-        assertTrue(contenido.contains("t-pa12 exclusiones"));
+        assertFalse(contenido.contains("t-pa12 exclusiones"),
+                "El CSV no debe incluir el titulo (texto libre)");
         assertFalse(contenido.contains("descripcion-secreta-t-pa12"),
                 "El CSV no debe incluir la descripcion");
         assertFalse(contenido.contains("justificacion-secreta-t-pa12"),
@@ -214,31 +213,26 @@ class PA12ReporteTest extends PruebaBase {
     }
 
     @Test
-    void losTitulosConFormulaSalenNeutralizadosYLaDescargaEsCsvUtf8() throws Exception {
+    void losValoresConFormulaSalenNeutralizadosYLaDescargaEsCsvUtf8() throws Exception {
         UsuarioEntity solicitante = crearUsuarioDePrueba("t-pa12-sol-formula", Rol.SOLICITANTE);
         crearUsuarioDePrueba("t-pa12-coord-formula", Rol.COORDINADOR);
-        persistir(solicitante, "=SUMA(A1:A2) t-pa12", "Descripcion de prueba del reporte.",
-                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, null);
-        persistir(solicitante, "+1 t-pa12", "Descripcion de prueba del reporte.",
-                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, null);
-        persistir(solicitante, "-2 t-pa12", "Descripcion de prueba del reporte.",
-                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, null);
-        persistir(solicitante, "@SUMA t-pa12", "Descripcion de prueba del reporte.",
-                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, null);
+        UsuarioEntity agente = crearUsuarioDePrueba("=t-pa12-formula", Rol.AGENTE);
+        persistir(solicitante, "t-pa12 formula", "Descripcion de prueba del reporte.",
+                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, agente);
         MockHttpSession sesion = iniciarSesion("t-pa12-coord-formula", CLAVE_PRUEBA);
 
         MvcResult resultado = descargar(sesion, "estado", "NUEVO");
         String contenido = csv(resultado);
 
-        assertTrue(contenido.contains("\"'=SUMA(A1:A2) t-pa12\""),
-                "Un titulo que empieza por = debe salir neutralizado");
-        assertTrue(contenido.contains("\"'+1 t-pa12\""));
-        assertTrue(contenido.contains("\"'-2 t-pa12\""));
-        assertTrue(contenido.contains("\"'@SUMA t-pa12\""));
-        assertFalse(contenido.contains("\"=SUMA"), "Ninguna celda debe empezar por =");
-        assertFalse(contenido.contains("\"+1"), "Ninguna celda debe empezar por +");
-        assertFalse(contenido.contains("\"-2"), "Ninguna celda debe empezar por -");
-        assertFalse(contenido.contains("\"@SUMA"), "Ninguna celda debe empezar por @");
+        assertTrue(contenido.contains("\"'=t-pa12-formula\""),
+                "Un valor que empieza por = debe salir neutralizado");
+        for (String linea : contenido.split("\r\n")) {
+            for (String celda : celdas(linea)) {
+                assertFalse(celda.startsWith("=") || celda.startsWith("+")
+                                || celda.startsWith("-") || celda.startsWith("@"),
+                        "Ninguna celda debe empezar por un caracter de formula: " + celda);
+            }
+        }
 
         byte[] cuerpo = resultado.getResponse().getContentAsByteArray();
         assertTrue(cuerpo.length > 3);
@@ -252,33 +246,43 @@ class PA12ReporteTest extends PruebaBase {
     }
 
     @Test
-    void unTituloConComaComillaYSaltoCumpleRfc4180YElEncabezadoVaEntrecomillado() throws Exception {
+    void unValorConComaYComillaCumpleRfc4180YElEncabezadoVaEntrecomillado() throws Exception {
         UsuarioEntity solicitante = crearUsuarioDePrueba("t-pa12-sol-rfc", Rol.SOLICITANTE);
         crearUsuarioDePrueba("t-pa12-coord-rfc", Rol.COORDINADOR);
-        String titulo = "t-pa12, \"comilla\"\nsalto de linea";
-        persistir(solicitante, titulo, "Descripcion de prueba del reporte.",
-                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, null);
+        UsuarioEntity agente = crearUsuarioDePrueba("t-pa12, \"a\"", Rol.AGENTE);
+        persistir(solicitante, "t-pa12 rfc", "Descripcion de prueba del reporte.",
+                EstadoSolicitud.NUEVO, PrioridadSolicitud.MEDIA, CategoriaSolicitud.SOFTWARE, agente);
         MockHttpSession sesion = iniciarSesion("t-pa12-coord-rfc", CLAVE_PRUEBA);
 
         String contenido = csv(descargar(sesion, "estado", "NUEVO"));
 
-        String encabezadoEsperado = "\"ID\",\"Titulo\",\"Categoria\",\"Prioridad\",\"Estado\","
+        String encabezadoEsperado = "\"ID\",\"Categoria\",\"Prioridad\",\"Estado\","
                 + "\"FechaCreacion\",\"FechaActualizacion\",\"AgenteAsignado\",\"FechaCierre\"";
         assertTrue(contenido.startsWith(encabezadoEsperado),
                 "El encabezado debe ir entrecomillado columna a columna");
-        assertTrue(contenido.contains("\"t-pa12, \"\"comilla\"\"\nsalto de linea\""),
+        assertTrue(contenido.contains("\"t-pa12, \"\"a\"\"\""),
                 "El campo debe entrecomillarse, duplicar comillas y conservar la coma");
 
-        int filasConTitulo = 0;
+        int filasConAgente = 0;
         for (List<String> fila : filas(contenido)) {
-            if (fila.size() > 1 && fila.get(1).equals(titulo)) {
-                filasConTitulo++;
-                assertEquals(9, fila.size(), "El salto de linea no debe partir la fila logica");
-                assertEquals("SOFTWARE", fila.get(2));
+            if (fila.size() > 6 && fila.get(6).equals("t-pa12, \"a\"")) {
+                filasConAgente++;
+                assertEquals(8, fila.size(), "La coma no debe partir la fila logica");
+                assertEquals("SOFTWARE", fila.get(1));
             }
         }
-        assertEquals(1, filasConTitulo, "El titulo debe ocupar exactamente una fila logica");
+        assertEquals(1, filasConAgente, "El valor debe ocupar exactamente una fila logica");
     }
+
+    /** Identificadores de las solicitudes listadas en el CSV (sin cabecera). */
+    private List<String> identificadores(String contenido) {
+        return filas(contenido).stream()
+                .skip(1)
+                .filter(fila -> !fila.isEmpty())
+                .map(fila -> fila.get(0))
+                .toList();
+    }
+
 
     /**
      * Parser CSV minimo que respeta comillas y saltos de linea dentro de un

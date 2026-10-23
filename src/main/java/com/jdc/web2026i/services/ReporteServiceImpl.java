@@ -26,7 +26,7 @@ public class ReporteServiceImpl implements ReporteService {
     private static final int LONGITUD_MAXIMA_VALOR = 300;
     private static final String SEPARADOR = ",";
     private static final String FIN_DE_LINEA = "\r\n";
-    private static final String[] COLUMNAS_ENCABEZADO = {"ID", "Titulo", "Categoria", "Prioridad", "Estado",
+    private static final String[] COLUMNAS_ENCABEZADO = {"ID", "Categoria", "Prioridad", "Estado",
             "FechaCreacion", "FechaActualizacion", "AgenteAsignado", "FechaCierre"};
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter FORMATO_NOMBRE = DateTimeFormatter.ofPattern("yyyyMMdd-HHmm");
@@ -56,7 +56,6 @@ public class ReporteServiceImpl implements ReporteService {
         csv.append(FIN_DE_LINEA);
         for (SolicitudEntity solicitud : solicitudes) {
             csv.append(celda(String.valueOf(solicitud.getIdSolicitud()))).append(SEPARADOR)
-                    .append(celda(solicitud.getTitulo())).append(SEPARADOR)
                     .append(celda(solicitud.getCategoria() == null ? null : solicitud.getCategoria().name()))
                     .append(SEPARADOR)
                     .append(celda(solicitud.getPrioridad() == null ? null : solicitud.getPrioridad().name()))
